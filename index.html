@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Broadcast Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://w0.peakpx.com/wallpaper/538/546/HD-wallpaper-whatsapp-dark-mode-whatsapp.jpg');
+            background-color: #0b141a; /* Fallback color */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 100%; margin: 0 auto; background: transparent; border-radius: 12px; box-shadow: none; overflow: hidden; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 35px; border-bottom: 1px solid #374045; background: #202c33; }
+        .header-title-container { display: flex; align-items: center; gap: 15px; }
+        .header-logo { background: linear-gradient(45deg, #6CB52D); color: white; font-weight: bold; font-size: 1.5em; width: 50px; height: 50px; border-radius: 10px; display: flex; justify-content: center; align-items: center; }
+        .header h1 { font-size: 1.8em; margin: 0; color: #e9edef; }
+        .header p { margin: 0; color: #8696a0; }
+        .status-indicator { background: #202c33; padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; font-weight: 600; font-size: 0.9em; border: 1px solid #374045; }
+        .status-indicator .status-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; transition: background-color 0.3s ease; }
+        .status-indicator.not-connected { color: #ff6b6b; }
+        .status-indicator.not-connected .status-dot { background-color: #ff6b6b; }
+        .status-indicator.connected { color: #6CB52D; }
+        .status-indicator.connected .status-dot { background-color: #6CB52D; }
+        .main-nav { display: flex; justify-content: center; padding: 10px; background: transparent; margin: 25px auto; width: fit-content; border-radius: 10px; }
+        .nav-button { background: transparent; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 500; color: #8696a0; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+        .nav-button:hover { background: #202c33; color: #e9edef; }
+        .nav-button.active { background: #6CB52D; color: white; box-shadow: 0 4px 12px rgba(108, 181, 45, 0.15); }
+        .content { padding: 0 40px 40px 40px; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .form-section { background: rgba(17, 27, 33, 0.95); backdrop-filter: blur(5px); padding: 30px; border-radius: 12px; margin-bottom: 25px; border: 1px solid rgba(134, 150, 160, 0.15); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 10px; font-weight: 600; color: #e9edef; font-size: 1.05em; }
+        input[type="text"], input[type="tel"], input[type="date"], input[type="time"], textarea, select { width: 100%; padding: 12px 15px; border: 1px solid #374045; border-radius: 8px; font-size: 16px; transition: all 0.3s ease; background: #202c33; color: #e9edef; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #6CB52D; box-shadow: 0 0 0 2px rgba(108, 181, 45, 0.2); background: #2a3942; }
+        textarea { resize: vertical; min-height: 120px; }
+        .recipients-container {
+            border: 1px solid #374045;
+            border-radius: 12px;
+            padding: 25px;
+            background: #202c33;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        /* Custom Scrollbar for Webkit browsers */
+        .recipients-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .recipients-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .recipients-container::-webkit-scrollbar-thumb {
+            background-color: #374045;
+            border-radius: 4px;
+        }
+        .recipients-container::-webkit-scrollbar-thumb:hover {
+            background-color: #8696a0;
+        }
+        .recipient-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .recipient-table thead th {
+            background: #374045;
+            color: #e9edef;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #6CB52D;
+        }
+        .recipient-table thead th:first-child {
+            border-top-left-radius: 8px;
+        }
+        .recipient-table thead th:last-child {
+            border-top-right-radius: 8px;
+        }
+        .recipient-row td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #374045;
+            vertical-align: middle;
+        }
+        .recipient-row:last-child td {
+            border-bottom: none;
+        }
+        .recipient-row input {
+            margin: 0;
+            width: 100%;
+        }
+        .recipient-row .btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            margin: 0;
+        }
+        .btn { background: #6CB52D; color: white; border: none; padding: 14px 28px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn:hover { transform: translateY(-2px); background: #599925; box-shadow: 0 4px 12px rgba(108, 181, 45, 0.3); }
+        .btn-secondary { background: #374045; }
+        .btn-danger { background: #dc3545; }
+        .section-title { color:#e9edef; font-size: 1.4em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #6CB52D; }
+        .status { padding: 20px; border-radius: 8px; margin: 15px 0; font-weight: 500; position: relative; border: 1px solid; line-height: 1.4; }
+        .status.success { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .status.info { background: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
+        #statusContainer { position: fixed; top: 20px; right: 20px; z-index: 2000; width: 350px; }
+        .status .close-btn { position: absolute; top: 50%; right: 20px; transform: translateY(-50%); background: none; border: none; font-size: 22px; cursor: pointer; color: inherit; opacity: 0.7; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        .qr-code { background: white; padding: 20px; border-radius: 12px; display: inline-block; margin: 15px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .qr-code.blurred img { filter: blur(8px); transition: filter 0.5s ease-in-out; }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal {
+            background: #111b21;
+            color: #e9edef;
+            padding: 35px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid #374045;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .modal-icon {
+            font-size: 3em;
+            color: #ffc107;
+            margin-bottom: 15px;
+        }
+        .modal-header h3 {
+            font-size: 1.6em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #e9edef;
+        }
+        .modal-header p {
+            color: #8696a0;
+            font-size: 1.0em;
+        }
+        .modal-body {
+            border-top: 1px solid #374045;
+            border-bottom: 1px solid #374045;
+            padding: 20px 0;
+            margin-bottom: 25px;
+        }
+        .modal-section {
+            margin-bottom: 20px;
+        }
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+        .modal-section h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1em;
+            color: #e9edef;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            font-size: 0.95em;
+        }
+        .summary-item + .summary-item {
+             border-top: 1px solid #202c33;
+        }
+        .summary-item span:first-child {
+            color: #8696a0;
+        }
+        .summary-item span:last-child {
+            font-weight: 600;
+            color: #e9edef;
+        }
+        .message-preview {
+            background: #0b141a;
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.6;
+            color: #aebac1;
+            font-style: italic;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+        .modal-actions .btn {
+            padding: 12px 24px;
+            font-size: 15px;
+        }
+        .btn-modal-cancel {
+            background: #374045;
+            color: #e9edef;
+        }
+        .btn-modal-cancel:hover {
+            background: #4a5861;
+        }
+        .btn-modal-confirm:hover {
+             background: #599925;
+        }
+        .scheduled-message-item { background: #202c33; border: 1px solid #374045; border-radius: 12px; padding: 20px; margin-bottom: 15px; color: #e9edef; }
+        .log-item { background: #202c33; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #6c757d; font-family: monospace; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; color: #e9edef; }
+        .log-item .log-time { color: #8696a0; }
+        .no-scheduled-messages { text-align: center; padding: 40px; color: #8696a0; font-style: italic; }
+        .empty-recipients { text-align: center; padding: 30px; color: #8696a0; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title-container">
+                <div class="header-logo">WB</div>
+                <div>
+            <h1>WhatsApp Broadcast Pro</h1>
+                    <p>Enterprise Message Automation</p>
+                </div>
+            </div>
+            <div id="connectionStatus" class="status-indicator not-connected">
+                <span class="status-dot"></span>
+                <span class="status-text">Not Connected</span>
+            </div>
+        </div>
+
+        <nav class="main-nav">
+            <button class="nav-button active" onclick="showPane('compose')">📝 Compose</button>
+            <button class="nav-button" onclick="showPane('scheduled')">📅 Scheduled</button>
+            <button class="nav-button" onclick="showPane('activity')">📊 Activity</button>
+            <button class="nav-button" onclick="showPane('connect')">🔌 Connect</button>
+        </nav>
+
+        <div class="content">
+            <div id="statusContainer"></div>
+
+            <!-- Compose Pane -->
+            <div id="compose" class="tab-pane active">
+            <form id="messageForm">
+                <div class="form-section">
+                    <h2 class="section-title">Message Template</h2>
+                    <div class="form-group">
+                            <label for="messageTemplate">Create your personalized message. Use {name} to include recipient names.</label>
+                        <textarea id="messageTemplate" placeholder="Enter your message template. Use {name} to include recipient's name.">Hey {name}! 👋
+
+This is a personalized test message sent via WhatsApp automation.
+
+Have a great day! 😊</textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Recipients</h2>
+                    <div class="form-group">
+                            <label for="bulkRecipients">Bulk Import Recipients (Name-Number):</label>
+                            <textarea id="bulkRecipients" placeholder="Virat-91XXXXXXXXXX
+Ramesh-91XXXXXXXXXX"></textarea>
+                            <button type="button" class="btn btn-secondary" style="margin-top:10px;" onclick="parseBulkRecipients()">
+                            <span>📥 Parse & Load Recipients</span>
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Individual Recipients:</label>
+                            <div class="recipients-container">
+                                <table class="recipient-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Phone Number</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recipientsContainer">
+                                        <tr class="empty-recipients">
+                                            <td colspan="3">No recipients added yet</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="button" class="btn btn-secondary" style="margin-top:10px;" onclick="addRecipient()">
+                            <span>+ Add Recipient</span>
+                        </button>
+                    </div>
+                </div>
+
+                    <div class="form-section">
+                        <h2 class="section-title">📅 Schedule Messages</h2>
+                        <div class="form-group">
+                            <label style="display:inline-flex; align-items:center; gap: 8px;">
+                                <input type="checkbox" id="enableScheduling" onchange="toggleScheduling()" style="width: auto;">
+                                Schedule messages for later
+                            </label>
+                        </div>
+                        <div class="form-group" id="schedulingOptions" style="display: none;">
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <div style="flex: 1;">
+                                    <label for="scheduleDate">Date:</label>
+                                    <input type="date" id="scheduleDate" min="">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label for="scheduleTime">Time:</label>
+                                    <input type="time" id="scheduleTime">
+                                </div>
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <label style="color: #e9edef;">Timezone:</label>
+                                <div style="padding: 14px 18px; border: 1px solid #374045; border-radius: 8px; background: #202c33; font-size: 16px; color: #e9edef;">India (IST)</div>
+                            </div>
+                            <div style="margin-top: 15px; padding: 15px; background: #202c33; border-radius: 8px; border-left: 4px solid #6CB52D; color: #e9edef;">
+                                <strong>📋 Scheduled Summary:</strong>
+                                <div id="scheduleSummary" style="margin-top: 8px; color: #8696a0;">Select date and time to see summary</div>
+                            </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <button type="submit" class="btn" id="sendButton">
+                        <span id="buttonText">🚀 Start Sending Messages</span>
+                        <span class="loading hidden" id="loadingSpinner"></span>
+                    </button>
+                </div>
+            </form>
+            </div>
+
+            <!-- Scheduled Pane -->
+            <div id="scheduled" class="tab-pane">
+                <div class="form-section" id="scheduledMessagesSection">
+                    <h2 class="section-title">📅 Scheduled Messages</h2>
+                    <div id="scheduledMessagesList"></div>
+                </div>
+            </div>
+            
+            <!-- Activity Pane -->
+            <div id="activity" class="tab-pane">
+                 <div class="form-section" id="activityLogSection">
+                    <h2 class="section-title">📜 Activity Log</h2>
+                    <div id="activityLogList"></div>
+                </div>
+            </div>
+
+            <!-- Connect Pane -->
+            <div id="connect" class="tab-pane">
+                <div id="connect-success" style="display: none;">
+                    <div class="form-section">
+                        <h2 class="section-title">✅ Connected</h2>
+                        <div class="status success">You are already logged in successfully.</div>
+                    </div>
+                </div>
+                <div id="connect-login">
+                    <div class="form-section">
+                        <h2 class="section-title">📱 Authentication</h2>
+                        <div class="form-group">
+                            <p style="margin-bottom: 15px; color: white;">
+                                Click the button below to generate a QR code and connect your WhatsApp account.
+                              </p>
+                              
+                            <button type="button" class="btn" onclick="getQRCode()">
+                                <span>Get QR Code</span>
+                            </button>
+                            <div id="authStatus" style="margin-top: 15px;"></div>
+                        </div>
+                    </div>
+                    <div class="form-section" id="qrContainer" style="display: none;">
+                        <h2 class="section-title">📱 Scan QR Code</h2>
+                        <div style="text-align: center;">
+                            <p>Open WhatsApp on your phone and scan this QR code to authenticate.</p>
+                <div class="qr-code" id="qrCode"></div>
+                <div id="qrStatus" class="status info">Waiting for QR code...</div>
+            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-icon">⚠️</div>
+                <h3>Confirm Action</h3>
+                <p>Please review the details before proceeding.</p>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <h4>📊 Summary</h4>
+                    <div class="summary-item">
+                        <span>Total Recipients</span>
+                        <span id="confirmRecipientCount">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Message Length</span>
+                        <span id="confirmMessageLength">0 characters</span>
+                    </div>
+                </div>
+                <div class="modal-section">
+                    <h4>💬 Message Preview</h4>
+                    <div class="message-preview" id="confirmMessagePreview"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-modal-cancel" onclick="cancelSending()">❌ Cancel</button>
+                <button type="button" class="btn btn-modal-confirm" onclick="confirmSending()">✅ Confirm & Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connect Alert Modal -->
+    <div class="modal-overlay" id="connectAlertModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Connection Required</h3>
+            </div>
+            <div class="modal-body" style="border: none; padding: 10px 10px 25px; text-align: center; color: #aebac1; font-size: 1.1em;">
+                Please connect to WhatsApp before sending messages.
+            </div>
+            <div class="modal-actions" style="justify-content: center; gap: 20px;">
+                <button type="button" class="btn btn-modal-cancel" onclick="closeConnectAlert()">Cancel</button>
+                <button type="button" class="btn" onclick="goToConnectTab()">🔌 Connect</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        let recipients = [];
+        let notifiedLogTimestamps = new Set();
+        let isAuthenticating = false;
+
+        function showPane(paneId) {
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            document.getElementById(paneId).classList.add('active');
+            document.querySelectorAll('.nav-button').forEach(button => button.classList.remove('active'));
+            document.querySelector(`.nav-button[onclick="showPane('${paneId}')"]`).classList.add('active');
+        }
+
+        async function updateConnectionStatus() {
+            if (isAuthenticating) return;
+            const isAuthenticated = await checkAuthStatus();
+            const connectionStatusEl = document.getElementById('connectionStatus');
+            const connectSuccessEl = document.getElementById('connect-success');
+            const connectLoginEl = document.getElementById('connect-login');
+
+            if (isAuthenticated) {
+                connectionStatusEl.className = 'status-indicator connected';
+                connectionStatusEl.querySelector('.status-text').textContent = 'Connected';
+                connectSuccessEl.style.display = 'block';
+                connectLoginEl.style.display = 'none';
+            } else {
+                connectionStatusEl.className = 'status-indicator not-connected';
+                connectionStatusEl.querySelector('.status-text').textContent = 'Not Connected';
+                connectSuccessEl.style.display = 'none';
+                connectLoginEl.style.display = 'block';
+            }
+        }
+        
+        async function getQRCode() {
+            isAuthenticating = true;
+            const authStatusDiv = document.getElementById('authStatus');
+            const qrContainer = document.getElementById('qrContainer');
+            document.getElementById('qrCode').classList.remove('blurred');
+            
+            if (await checkAuthStatus()) {
+                authStatusDiv.innerHTML = '<div class="status success">✅ You are already logged in.</div>';
+                setTimeout(() => { isAuthenticating = false; updateConnectionStatus(); }, 2000);
+                return;
+            }
+
+            authStatusDiv.innerHTML = '<div class="status info">Initializing WhatsApp...</div>';
+            qrContainer.style.display = 'block';
+
+            const initialized = await initializeWhatsApp();
+            if (initialized) {
+                authStatusDiv.innerHTML = '<div class="status success">Client initialized. Waiting for QR...</div>';
+                const qrPoll = setInterval(async () => {
+                    if (await pollForQRCode()) {
+                        clearInterval(qrPoll);
+                        document.getElementById('qrCode').classList.add('blurred');
+                        document.getElementById('qrStatus').textContent = '✅ Login Successful';
+                        authStatusDiv.innerHTML = '<div class="status success">✅ Logged in successfully!</div>';
+                        setTimeout(() => {
+                            qrContainer.style.display = 'none';
+                            isAuthenticating = false;
+                            updateConnectionStatus();
+                        }, 2000);
+                    }
+                }, 2000);
+
+                setTimeout(async () => {
+                    clearInterval(qrPoll);
+                    if (!isAuthenticating || !(await checkAuthStatus())) {
+                        authStatusDiv.innerHTML = '<div class="status error">Authentication timeout. Try again.</div>';
+                        qrContainer.style.display = 'none';
+                        isAuthenticating = false;
+                    }
+                }, 120000);
+            } else {
+                authStatusDiv.innerHTML = '<div class="status error">Failed to initialize. Please try again.</div>';
+                qrContainer.style.display = 'none';
+                isAuthenticating = false;
+            }
+        }
+
+        function addRecipient() {
+            const container = document.getElementById('recipientsContainer');
+            
+            // Remove empty message if it exists
+            const emptyRow = container.querySelector('.empty-recipients');
+            if (emptyRow) {
+                emptyRow.remove();
+            }
+            
+            const row = document.createElement('tr');
+            row.className = 'recipient-row';
+            row.innerHTML = `
+                <td><input type="text" placeholder="Name" class="recipient-name" required></td>
+                <td><input type="tel" placeholder="Phone Number (with country code)" class="recipient-number" required></td>
+                <td><button type="button" class="btn btn-danger" onclick="removeRecipient(this)">Remove</button></td>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeRecipient(button) {
+            const container = document.getElementById('recipientsContainer');
+            button.closest('tr').remove();
+            
+            // Add empty message if no recipients left
+            if (container.querySelectorAll('.recipient-row').length === 0) {
+                container.innerHTML = '<tr class="empty-recipients"><td colspan="3">No recipients added yet</td></tr>';
+            }
+        }
+
+        function parseBulkRecipients() {
+            const bulkInput = document.getElementById('bulkRecipients').value.trim();
+            if (!bulkInput) { showStatus('Please enter recipients in the bulk input field', 'error'); return; }
+            const lines = bulkInput.split('\n').filter(line => line.trim());
+            const parsedRecipients = lines.map(line => {
+                const parts = line.split('-');
+                if (parts.length < 2) return null;
+                return { name: parts[0].trim(), number: parts.slice(1).join('-').trim() };
+            }).filter(r => r && r.name && r.number);
+            
+            if (parsedRecipients.length === 0) { showStatus('No valid recipients found. Use format: name-number', 'error'); return; }
+
+            const container = document.getElementById('recipientsContainer');
+            container.innerHTML = '';
+            parsedRecipients.forEach(r => {
+                const row = document.createElement('tr');
+                row.className = 'recipient-row';
+                row.innerHTML = `
+                    <td><input type="text" placeholder="Name" class="recipient-name" value="${r.name}" required></td>
+                    <td><input type="tel" placeholder="Phone Number (with country code)" class="recipient-number" value="${r.number}" required></td>
+                    <td><button type="button" class="btn btn-danger" onclick="removeRecipient(this)">Remove</button></td>
+                `;
+                container.appendChild(row);
+            });
+            showStatus(`✅ Loaded ${parsedRecipients.length} recipients successfully`, 'success');
+        }
+
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('statusContainer');
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.innerHTML = `${message}<button class="close-btn" onclick="this.parentElement.remove()">×</button>`;
+            container.appendChild(status);
+            setTimeout(() => { if (status.parentElement) status.remove(); }, 6000);
+        }
+
+        function collectRecipients() {
+            recipients = [];
+            document.querySelectorAll('.recipient-row').forEach(row => {
+                const name = row.querySelector('.recipient-name').value.trim();
+                const number = row.querySelector('.recipient-number').value.trim();
+                if (name && number) {
+                    recipients.push({ name, number: number.replace(/[\s+\-\(\)]/g, '') });
+                }
+            });
+            return recipients.length > 0;
+        }
+
+        function toggleScheduling() {
+            const isChecked = document.getElementById('enableScheduling').checked;
+            document.getElementById('schedulingOptions').style.display = isChecked ? 'block' : 'none';
+            document.getElementById('buttonText').textContent = isChecked ? '📅 Schedule Messages' : '🚀 Start Sending Messages';
+            if(isChecked) initializeScheduling();
+        }
+
+        function initializeScheduling() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('scheduleDate').min = today;
+            document.getElementById('scheduleDate').value = today;
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            document.getElementById('scheduleTime').value = now.toTimeString().slice(0, 5);
+            updateScheduleSummary();
+        }
+
+        function getIstDateFormatter(options) {
+            return new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', hour12: true, ...options });
+        }
+
+        function updateScheduleSummary() { /* Unchanged */ }
+
+        function closeConnectAlert() {
+            document.getElementById('connectAlertModal').classList.remove('show');
+        }
+
+        function goToConnectTab() {
+            closeConnectAlert();
+            showPane('connect');
+        }
+
+        async function showConfirmationModal() {
+            const isAuthenticated = await checkAuthStatus();
+            if (!isAuthenticated) {
+                document.getElementById('connectAlertModal').classList.add('show');
+                return;
+            }
+            if (!collectRecipients() || !document.getElementById('messageTemplate').value.trim()) {
+                showStatus('Please add recipients and a message before sending.', 'error');
+                return;
+            }
+            const modal = document.getElementById('confirmationModal');
+            document.getElementById('confirmRecipientCount').textContent = recipients.length;
+            document.getElementById('confirmMessageLength').textContent = document.getElementById('messageTemplate').value.length + ' characters';
+            document.getElementById('confirmMessagePreview').textContent = document.getElementById('messageTemplate').value.replace(/{name}/g, recipients[0]?.name || '[Name]');
+            modal.classList.add('show');
+        }
+    
+        function cancelSending() { document.getElementById('confirmationModal').classList.remove('show'); }
+
+        function confirmSending() {
+            document.getElementById('confirmationModal').classList.remove('show');
+            if (document.getElementById('enableScheduling').checked) {
+                scheduleMessages();
+            } else {
+                sendMessagesNow();
+            }
+        }
+
+        async function apiFetch(endpoint, options = {}) {
+            try {
+                const response = await fetch(endpoint, options);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({error: "An unknown error occurred"}));
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error with ${endpoint}:`, error);
+                showStatus(`Error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function checkAuthStatus() { return (await apiFetch('/api/status'))?.authenticated || false; }
+        async function initializeWhatsApp() { return (await apiFetch('/api/init', { method: 'POST' }))?.success || false; }
+        async function pollForQRCode() {
+            const data = await apiFetch('/api/qr');
+            if (!data) return false;
+            if (data.authenticated) return true;
+                    if (data.qrCode) {
+                document.getElementById('qrCode').innerHTML = `<img src="${data.qrCode}">`;
+                document.getElementById('qrStatus').textContent = 'QR Ready! Scan with WhatsApp.';
+            }
+            return false;
+        }
+
+        async function sendMessagesNow() {
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.querySelector('.loading').classList.remove('hidden');
+            const data = await apiFetch('/api/send', {
+                    method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipients: recipients,
+                    messageTemplate: document.getElementById('messageTemplate').value
+                })
+            });
+            if (data?.success) {
+                showStatus(`✅ Complete! ${data.summary.successful}/${data.summary.total} messages sent.`, 'success');
+            }
+            sendButton.disabled = false;
+            sendButton.querySelector('.loading').classList.add('hidden');
+        }
+
+        async function scheduleMessages() {
+            const scheduledTime = `${document.getElementById('scheduleDate').value}T${document.getElementById('scheduleTime').value}`;
+            const data = await apiFetch('/api/schedule', {
+                    method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recipients: recipients,
+                    messageTemplate: document.getElementById('messageTemplate').value,
+                    scheduledTime: scheduledTime,
+                    timezone: 'Asia/Kolkata'
+                    })
+                });
+            if (data?.success) {
+                const timeString = getIstDateFormatter({ year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(data.scheduledTime));
+                showStatus(`✅ Messages scheduled successfully for ${timeString} (IST)`, 'success');
+                loadScheduledMessages();
+            }
+        }
+
+        async function loadScheduledMessages() {
+            const data = await apiFetch('/api/scheduled');
+            const container = document.getElementById('scheduledMessagesList');
+            if (!data || !data.scheduledMessages || data.scheduledMessages.length === 0) {
+                container.innerHTML = '<div class="no-scheduled-messages">No scheduled messages found</div>';
+                return;
+            }
+            container.innerHTML = '';
+            data.scheduledMessages.forEach(msg => container.appendChild(createScheduledMessageElement(msg)));
+        }
+
+        function createScheduledMessageElement(message) {
+            const element = document.createElement('div');
+            element.className = 'scheduled-message-item';
+            const timeString = getIstDateFormatter({ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(message.scheduledTime));
+            element.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div style="font-weight: 600;">${timeString}</div>
+                    <div style="padding: 5px 10px; border-radius: 15px; background: #d1ecf1; color: #0c5460; font-size: 0.9em;">${message.status}</div>
+                </div>
+                <div><strong>Recipients:</strong> ${message.recipientCount}</div>
+                <div style="margin-top: 5px;"><strong>Preview:</strong> <span style="font-style: italic;">${message.messagePreview}</span></div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-danger" style="padding: 8px 16px; font-size: 14px;" onclick="cancelScheduledMessage('${message.id}')">Cancel</button>
+                </div>
+            `;
+            return element;
+        }
+
+        async function cancelScheduledMessage(messageId) {
+            if (!confirm('Are you sure you want to cancel this scheduled message?')) return;
+            const data = await apiFetch(`/api/scheduled/${messageId}`, { method: 'DELETE' });
+            if (data?.success) {
+                showStatus('Scheduled message cancelled.', 'success');
+                loadScheduledMessages();
+            }
+        }
+
+        async function loadLogs() {
+            const data = await apiFetch('/api/logs');
+            const container = document.getElementById('activityLogList');
+            if (!data || !data.logs || data.logs.length === 0) {
+                container.innerHTML = '<div class="no-scheduled-messages">No activity yet.</div>';
+                return;
+            }
+            data.logs.forEach(log => {
+                if (log.message.includes('completed') && !notifiedLogTimestamps.has(log.timestamp)) {
+                    showStatus(`✅ ${log.message}`, 'success');
+                    notifiedLogTimestamps.add(log.timestamp);
+                }
+            });
+            container.innerHTML = '';
+            data.logs.forEach(log => container.appendChild(createLogElement(log)));
+        }
+
+        function createLogElement(log) {
+            const element = document.createElement('div');
+            element.className = 'log-item';
+            const timeString = getIstDateFormatter({ day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(log.timestamp));
+            element.innerHTML = `<span>${log.message}</span><span class="log-time">${timeString}</span>`;
+            return element;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            addRecipient();
+            showPane('compose');
+            updateConnectionStatus();
+            loadScheduledMessages();
+            loadLogs();
+            setInterval(() => {
+                updateConnectionStatus();
+                loadScheduledMessages();
+                loadLogs();
+            }, 10000);
+        });
+
+        document.getElementById('messageForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            showConfirmationModal();
+        });
+
+        document.getElementById('confirmationModal').addEventListener('click', function(e) {
+            if (e.target === this) { cancelSending(); }
+        });
+
+        document.getElementById('connectAlertModal').addEventListener('click', function(e) {
+            if (e.target === this) { closeConnectAlert(); }
+        });
+    </script>
+</body>
+</html>

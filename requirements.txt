@@ -1,0 +1,5 @@
+whatsapp-web.js@1.23.0
+qrcode-terminal@0.12.0
+puppeteer@21.5.2
+express@4.18.2
+qrcode@1.5.3 
