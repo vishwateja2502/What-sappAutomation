@@ -99,6 +99,38 @@
             font-size: 14px;
             margin: 0;
         }
+        .file-drop-zone {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed #374045;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #111b21;
+            height: 100%;
+        }
+        .file-drop-zone:hover, .file-drop-zone.dragover {
+            border-color: #6CB52D;
+            background-color: #202c33;
+        }
+        .file-drop-zone .drop-icon {
+            font-size: 2.5em;
+            color: #6CB52D;
+            margin-bottom: 15px;
+        }
+        .file-drop-zone .drop-text {
+            color: #e9edef;
+            font-weight: 600;
+        }
+        .file-drop-zone .drop-subtext {
+            color: #8696a0;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
         .btn { background: #6CB52D; color: white; border: none; padding: 14px 28px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn:hover { transform: translateY(-2px); background: #599925; box-shadow: 0 4px 12px rgba(108, 181, 45, 0.3); }
         .btn-secondary { background: #374045; }
@@ -283,12 +315,30 @@ Have a great day! 😊</textarea>
                 <div class="form-section">
                     <h2 class="section-title">Recipients</h2>
                     <div class="form-group">
-                            <label for="bulkRecipients">Bulk Import Recipients (Name-Number):</label>
-                            <textarea id="bulkRecipients" placeholder="Virat-91XXXXXXXXXX
-Ramesh-91XXXXXXXXXX"></textarea>
-                            <button type="button" class="btn btn-secondary" style="margin-top:10px;" onclick="parseBulkRecipients()">
-                            <span>📥 Parse & Load Recipients</span>
-                        </button>
+                        <label>Bulk Import</label>
+                        <p style="font-size: 0.9em; color: #8696a0; margin-bottom: 10px;">Use one of the methods below to add multiple recipients.</p>
+                        <div style="display: flex; gap: 20px; align-items: stretch;">
+                            
+                            <!-- Left: Paste -->
+                            <div style="flex: 1; display: flex; flex-direction: column;">
+                                <textarea id="bulkRecipients" placeholder="Virat-91XXXXXXXXXX
+Ramesh-91XXXXXXXXXX" style="width: 100%; flex-grow: 1;"></textarea>
+                                <button type="button" class="btn btn-secondary" style="margin-top:10px;" onclick="parseBulkRecipients()">
+                                    <span>📥 Parse & Load List</span>
+                                </button>
+                            </div>
+
+                            <!-- Right: Upload -->
+                            <div style="flex: 1;">
+                                <input type="file" id="csvFileInput" accept=".csv, .xlsx, .xls" onchange="handleFileUpload(event)" style="display: none;">
+                                <label for="csvFileInput" class="file-drop-zone" id="fileDropZone">
+                                    <div class="drop-icon">📤</div>
+                                    <div class="drop-text">Click to upload</div>
+                                    <div class="drop-subtext">or drag & drop</div>
+                                </label>
+                            </div>
+
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -453,10 +503,12 @@ Ramesh-91XXXXXXXXXX"></textarea>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script>
         let recipients = [];
-        let notifiedLogTimestamps = new Set();
+        let notifiedLogTimestamps = new Set(JSON.parse(localStorage.getItem('notifiedLogs') || '[]'));
         let isAuthenticating = false;
 
         function showPane(paneId) {
@@ -572,11 +624,25 @@ Ramesh-91XXXXXXXXXX"></textarea>
                 return { name: parts[0].trim(), number: parts.slice(1).join('-').trim() };
             }).filter(r => r && r.name && r.number);
             
-            if (parsedRecipients.length === 0) { showStatus('No valid recipients found. Use format: name-number', 'error'); return; }
+            if (parsedRecipients.length === 0) {
+                showStatus('No valid recipients found. Use format: name-number', 'error');
+                return;
+            }
 
+            populateRecipientsTable(parsedRecipients);
+            showStatus(`✅ Loaded ${parsedRecipients.length} recipients successfully`, 'success');
+        }
+        
+        function populateRecipientsTable(recipients) {
             const container = document.getElementById('recipientsContainer');
             container.innerHTML = '';
-            parsedRecipients.forEach(r => {
+            
+            if(recipients.length === 0) {
+                container.innerHTML = '<tr class="empty-recipients"><td colspan="3">No recipients added yet</td></tr>';
+                return;
+            }
+
+            recipients.forEach(r => {
                 const row = document.createElement('tr');
                 row.className = 'recipient-row';
                 row.innerHTML = `
@@ -586,7 +652,60 @@ Ramesh-91XXXXXXXXXX"></textarea>
                 `;
                 container.appendChild(row);
             });
-            showStatus(`✅ Loaded ${parsedRecipients.length} recipients successfully`, 'success');
+            // Reset file input to allow uploading the same file again
+            document.getElementById('csvFileInput').value = '';
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+
+            if (fileExtension === 'csv') {
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => processParsedData(results.data),
+                    error: (error) => showStatus(`Error parsing CSV: ${error.message}`, 'error')
+                });
+            } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                        processParsedData(jsonData);
+                    } catch (err) {
+                        showStatus(`Error parsing Excel file: ${err.message}`, 'error');
+                    }
+                };
+                reader.onerror = () => showStatus('Failed to read the file.', 'error');
+                reader.readAsArrayBuffer(file);
+            } else {
+                showStatus('Unsupported file type. Please use CSV or Excel.', 'error');
+            }
+        }
+
+        function processParsedData(data) {
+             const parsedRecipients = data.map(row => {
+                const nameKey = Object.keys(row).find(k => k.toLowerCase() === 'name');
+                const numberKey = Object.keys(row).find(k => k.toLowerCase() === 'number');
+                if (nameKey && numberKey && row[nameKey] && row[numberKey]) {
+                    return { name: String(row[nameKey]).trim(), number: String(row[numberKey]).trim() };
+                }
+                return null;
+            }).filter(r => r);
+
+            if (parsedRecipients.length === 0) {
+                showStatus('Could not find valid "Name" and "Number" data in the file, or the file is empty.', 'error');
+                return;
+            }
+            
+            populateRecipientsTable(parsedRecipients);
+            showStatus(`✅ Loaded ${parsedRecipients.length} recipients successfully from file`, 'success');
         }
 
         function showStatus(message, type = 'info') {
@@ -692,6 +811,7 @@ Ramesh-91XXXXXXXXXX"></textarea>
             if (!data) return false;
             if (data.authenticated) return true;
                     if (data.qrCode) {
+                document.getElementById('authStatus').innerHTML = '<div class="status success">✅ QR Code Ready! Scan with WhatsApp.</div>';
                 document.getElementById('qrCode').innerHTML = `<img src="${data.qrCode}">`;
                 document.getElementById('qrStatus').textContent = 'QR Ready! Scan with WhatsApp.';
             }
@@ -781,12 +901,20 @@ Ramesh-91XXXXXXXXXX"></textarea>
                 container.innerHTML = '<div class="no-scheduled-messages">No activity yet.</div>';
                 return;
             }
+            
+            let newNotifications = false;
             data.logs.forEach(log => {
                 if (log.message.includes('completed') && !notifiedLogTimestamps.has(log.timestamp)) {
                     showStatus(`✅ ${log.message}`, 'success');
                     notifiedLogTimestamps.add(log.timestamp);
+                    newNotifications = true;
                 }
             });
+
+            if (newNotifications) {
+                localStorage.setItem('notifiedLogs', JSON.stringify(Array.from(notifiedLogTimestamps)));
+            }
+
             container.innerHTML = '';
             data.logs.forEach(log => container.appendChild(createLogElement(log)));
         }
@@ -800,6 +928,27 @@ Ramesh-91XXXXXXXXXX"></textarea>
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            const dropZone = document.getElementById('fileDropZone');
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    document.getElementById('csvFileInput').files = files;
+                    handleFileUpload({ target: { files: files } });
+                }
+            });
+
             addRecipient();
             showPane('compose');
             updateConnectionStatus();

@@ -10,7 +10,19 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+
+// Routes
+// Define specific routes before static middleware to ensure they are matched first.
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'welcome.html'));
+});
+
+app.get('/index', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve static files for the main app (CSS, client-side JS, etc.)
+app.use(express.static(path.join(__dirname), { index: false }));
 
 // Store client instance and QR code
 let client = null;
@@ -182,11 +194,6 @@ function cleanupSession() {
         }
     }
 }
-
-// Routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
 
 // Initialize WhatsApp client
 app.post('/api/init', async (req, res) => {

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - WhatsApp Broadcast Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://w0.peakpx.com/wallpaper/538/546/HD-wallpaper-whatsapp-dark-mode-whatsapp.jpg');
+            background-color: #0b141a;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .welcome-container {
+            background: rgba(17, 27, 33, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 50px;
+            text-align: center;
+            max-width: 960px;
+            width: 100%;
+            border: 1px solid rgba(134, 150, 160, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.8s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #6CB52D, #25D366);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 10px 25px rgba(108, 181, 45, 0.3);
+        }
+        h1 {
+            color: #e9edef;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: #8696a0;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+        .feature {
+            background: rgba(32, 44, 51, 0.6);
+            padding: 25px 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(134, 150, 160, 0.1);
+            transition: all 0.3s ease;
+        }
+        .feature:hover {
+            transform: translateY(-5px);
+            border-color: #6CB52D;
+            box-shadow: 0 10px 25px rgba(108, 181, 45, 0.1);
+        }
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .feature h3 {
+            color: #e9edef;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .feature p {
+            color: #8696a0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .get-started-btn {
+            background: linear-gradient(135deg, #6CB52D, #25D366);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(108, 181, 45, 0.3);
+        }
+        .get-started-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(108, 181, 45, 0.4);
+        }
+        .get-started-btn:active {
+            transform: translateY(-1px);
+        }
+        .footer-text {
+            color: #8696a0;
+            font-size: 0.9em;
+            margin-top: 30px;
+            opacity: 0.8;
+        }
+        .version-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(108, 181, 45, 0.2);
+            color: #6CB52D;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            border: 1px solid rgba(108, 181, 45, 0.3);
+        }
+        @media (max-width: 768px) {
+            .welcome-container {
+                padding: 40px 30px;
+                margin: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .features {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .version-badge {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="version-badge">v2.0</div>
+    
+    <div class="welcome-container">
+        <div class="logo">WB</div>
+        
+        <h1>WhatsApp Broadcast Pro</h1>
+        <p class="subtitle">
+            Enterprise-grade WhatsApp automation platform for bulk messaging, scheduling, and campaign management
+        </p>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">📝</span>
+                <h3>Smart Templates</h3>
+                <p>Create personalized messages with dynamic placeholders for recipient names</p>
+            </div>
+            
+            <div class="feature">
+                <span class="feature-icon">📅</span>
+                <h3>Message Scheduling</h3>
+                <p>Schedule messages for optimal delivery times with timezone support</p>
+            </div>
+            
+            <div class="feature">
+                <span class="feature-icon">📊</span>
+                <h3>Bulk Import</h3>
+                <p>Import recipients from CSV/Excel files or paste directly from your lists</p>
+            </div>
+            
+            <div class="feature">
+                <span class="feature-icon">🔌</span>
+                <h3>Easy Setup</h3>
+                <p>Quick QR code authentication to connect your WhatsApp account securely</p>
+            </div>
+            
+            <div class="feature">
+                <span class="feature-icon">📈</span>
+                <h3>Activity Tracking</h3>
+                <p>Monitor message delivery status and campaign performance in real-time</p>
+            </div>
+            
+            <div class="feature">
+                <span class="feature-icon">⚡</span>
+                <h3>High Performance</h3>
+                <p>Send thousands of messages efficiently with intelligent rate limiting</p>
+            </div>
+        </div>
+        
+        <a href="/index" class="get-started-btn">
+            🚀 Get Started
+        </a>
+        
+        <p class="footer-text">
+            Secure • Reliable • Enterprise Ready
+        </p>
+    </div>
+
+    <script>
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const features = document.querySelectorAll('.feature');
+            const btn = document.querySelector('.get-started-btn');
+            
+            // Stagger animation for features
+            features.forEach((feature, index) => {
+                feature.style.opacity = '0';
+                feature.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    feature.style.transition = 'all 0.6s ease';
+                    feature.style.opacity = '1';
+                    feature.style.transform = 'translateY(0)';
+                }, 200 + (index * 100));
+            });
+            
+            // Button hover effect
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.02)';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+            
+            // Add click sound effect (optional)
+            btn.addEventListener('click', function() {
+                // You can add a subtle click effect here
+                this.style.transform = 'translateY(-1px) scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = 'translateY(-3px) scale(1.02)';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html> 

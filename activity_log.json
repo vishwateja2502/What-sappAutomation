@@ -1,5 +1,13 @@
 [
   {
+    "timestamp": 1750532709255,
+    "message": "Scheduled job completed: 9/9 messages sent successfully."
+  },
+  {
+    "timestamp": 1750501202080,
+    "message": "Scheduled job completed: 2/2 messages sent successfully."
+  },
+  {
     "timestamp": 1750494305472,
     "message": "Scheduled job completed: 3/3 messages sent successfully."
   },
